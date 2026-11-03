@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Photo Resizer | Compress to 50KB & 20KB</title>
+    <meta name="description" content="Free tool to reduce image size in KB for SSC, UPSC, and Sarkari exams. Compress passport photos under 50KB, signatures under 20KB, and convert marksheets to PDF under 100KB.">
+    <meta name="keywords" content="compress image to 50kb, photo resizer for ssc, signature resizer 20kb, sarkari form photo size, reduce image size in kb for exam">
+    <meta name="author" content="Exam Photo Tools">
+    <!-- jsPDF CDN for free client-side PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f4f9; }
+        h1, h2 { text-align: center; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input[type="file"], input[type="number"] { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 15px; font-weight: bold; text-align: center; }
+        .download-btn { background-color: #28a745; display: none; text-align: center; text-decoration: none; padding: 12px; border-radius: 5px; color: white; font-size: 16px; margin-top: 10px; font-weight: bold; }
+        .download-btn:hover { background-color: #218838; }
+        .seo-text { font-size: 14px; color: #555; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <h1>Govt Exam Document Tools</h1>
+
+    <!-- Option A: Image Compressor -->
+    <div class="card">
+        <h2>Compress Photo & Signature</h2>
+        <label>Upload JPG/PNG Image:</label>
+        <input type="file" id="imageInput" accept="image/*">
+        
+        <label>Target File Size (KB):</label>
+        <input type="number" id="targetSize" value="50" min="10" max="500">
+        
+        <button onclick="compressImage()">Compress Image</button>
+        <p id="compressStatus" class="result"></p>
+        <a id="downloadImageBtn" class="download-btn">Download Compressed Image</a>
+    </div>
+
+    <!-- Option B: Image to PDF Converter -->
+    <div class="card">
+        <h2>Image to PDF (Under 100KB)</h2>
+        <label>Upload Marksheet/Certificate (Image):</label>
+        <input type="file" id="pdfImageInput" accept="image/*">
+        
+        <button onclick="convertToPDF()">Convert to PDF</button>
+        <p id="pdfStatus" class="result"></p>
+        <a id="downloadPdfBtn" class="download-btn">Download PDF</a>
+    </div>
+
+    <!-- SEO & FAQ Section to help Google rank the page -->
+    <div class="card seo-text">
+        <h2>How to Compress Photos for Govt Exams</h2>
+        <p><strong>What are the standard photo dimensions for SSC and Railway Exams?</strong><br>
+        Most Indian government exam portals require passport photos to be under 50KB and signatures to be under 20KB in JPG format. This free tool automatically reduces the file size while keeping the image clear.</p>
+        <p><strong>How to convert a marksheet to a PDF under 100KB?</strong><br>
+        Upload a clear photo of your certificate. This tool will compress the image and wrap it in a PDF format directly on your phone. No data is sent to any external server, ensuring your private documents remain secure.</p>
+    </div>
+
+    <script>
+        // Option A: Logic to compress standard JPG images
+        function compressImage() {
+            const fileInput = document.getElementById('imageInput');
+            const targetKB = document.getElementById('targetSize').value;
+            const status = document.getElementById('compressStatus');
+            const downloadBtn = document.getElementById('downloadImageBtn');
+
+            if (!fileInput.files.length) {
+                status.innerText = "Please upload an image first.";
+                status.style.color = "red";
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // Downscale excessively large smartphone photos
+                    const maxDim = 1200;
+                    if (width > maxDim || height > maxDim) {
+                        const ratio = Math.min(maxDim / width, maxDim / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    let quality = 0.9;
+                    
+                    // Recursive function to reduce quality until the file hits the target KB
+                    function reduceQuality() {
+                        canvas.toBlob(function(blob) {
+                            let sizeKB = blob.size / 1024;
+                            if (sizeKB > targetKB && quality > 0.1) {
+                                quality -= 0.1;
+                                reduceQuality(); 
+                            } else {
+                                const url = URL.createObjectURL(blob);
+                                downloadBtn.href = url;
+                                downloadBtn.download = "compressed_photo.jpg";
+                                downloadBtn.style.display = "block";
+                                status.innerText = "Success! Final size: " + sizeKB.toFixed(2) + " KB";
+                                status.style.color = "green";
+                            }
+                        }, 'image/jpeg', quality);
+                    }
+                    reduceQuality();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Option B: Logic to shrink an image and convert it to a PDF
+        function convertToPDF() {
+            const fileInput = document.getElementById('pdfImageInput');
+            const status = document.getElementById('pdfStatus');
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+
+            if (!fileInput.files.length) {
+                status.innerText = "Please upload an image first.";
+                status.style.color = "red";
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Scale down heavily to ensure the final PDF stays well under 100KB
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 800;
+                    if (width > maxDim || height > maxDim) {
+                        const ratio = Math.min(maxDim / width, maxDim / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress the canvas output to 60% quality
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+                    // Initialize the jsPDF library
+                    window.jsPDF = window.jspdf.jsPDF;
+                    const pdf = new jsPDF();
+                    
+                    // Fit the image onto standard A4 sizing with a margin
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const margin = 10;
+                    const pdfImgWidth = pageWidth - (margin * 2);
+                    const pdfImgHeight = (height * pdfImgWidth) / width;
+                    
+                    pdf.addImage(compressedDataUrl, 'JPEG', margin, margin, pdfImgWidth, pdfImgHeight);
+                    
+                    // Extract the final PDF to verify size and generate download link
+                    const pdfBlob = pdf.output('blob');
+                    const sizeKB = pdfBlob.size / 1024;
+                    
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+                    downloadBtn.href = pdfUrl;
+                    downloadBtn.download = "compressed_document.pdf";
+                    downloadBtn.style.display = "block";
+                    
+                    status.innerText = "PDF created! Final size: " + sizeKB.toFixed(2) + " KB";
+                    status.style.color = "green";
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>
